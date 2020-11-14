@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <title>Browser-Camera Face Recognition Client</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    </head>
+
+
+    <body onload="setUpNRClient()" style="font-family:Arial, Helvetica, sans-serif;">
+        <h2 style="margin-top:2rem;"> Browser-Camera Face Recognition Client </h2>
+        <p> Below is where the labelled image will appear along with the expression(s) detected. </p>
+
+        <div id="faceRecDiv"></div>
+
+        <p>Expressions(s) detected in the image: <span id="emotionRecText" style="color:orange; font-weight:bold;"> ______ </span> </p>
+
+
+        <!-- --------------------------------------------------------------------- -->
+        <script >
+            function setUpNRClient() {
+                //set up an initial loading image
+                $('#faceRecDiv').html('<img src="loading_image.gif" alt="Labelled Face Recognition Image" width=auto height=auto border="1" />');
+
+                //read in expression text from Node-Red using AJAX and set it in HTML
+                $.ajax( {
+                    type: "GET",
+                    url: "http://localhost:1880/labelled_expressions",   //url of node-red html
+                }).done(function (response) {           //callback on success
+                    //parse the returned JSON object
+                    console.log("Response Received: ", response);
+                    var jsonResponse = JSON.parse(response);
+                    console.log("JSON Parsed: ", jsonResponse);
+
+                    //display the expressions detected
+                    var allExpressions = jsonResponse.expressions;
+                    var detectedExpressionsStr = "";
+                    if (allExpressions.length > 0)
+                    {
+                        detectedExpressionsStr = allExpressions;
+                    }
+                    else
+                    {
+                        detectedExpressionsStr = "None Detected";
+                    }
+
+                    $('#emotionRecText').text(detectedExpressionsStr);
+
+                    //display the image
+                    var labelledImage = jsonResponse.image; //in base-64 format (converted before being sent)
+                    $('#faceRecDiv').html('<img src="data:image/jpg;base64,' + labelledImage + '" alt="Labelled Face Recognition Image" width=60% height=auto />'); 
+                })
+            }
+        </script>
+    </body>
+
+</html>
